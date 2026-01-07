@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Theme Chatbot</title>
+    <link rel="icon" type="image/svg+xml" href="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #131314;
+            --bg-secondary: #1E1F20;
+            --bg-tertiary: #2D2E30;
+            --text-primary: #E3E3E3;
+            --text-secondary: #8E918F;
+            --border-color: #444746;
+            --input-bg: #1E1F20;
+            --hover-bg: #3C4043;
+        }
+
+        .light-mode {
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #F0F4F9;
+            --bg-tertiary: #E1E3E6;
+            --text-primary: #1F1F1F;
+            --text-secondary: #444746;
+            --border-color: #E0E0E0;
+            --input-bg: #F0F4F9;
+            --hover-bg: #E1E3E6;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary); 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color); 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #5E5E5E; 
+        }
+
+        /* Typing Animation */
+        .typing-dot {
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        /* Markdown Styles */
+        .prose p { margin-bottom: 1em; }
+        .prose ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
+        .prose ol { list-style-type: decimal; padding-left: 1.5em; margin-bottom: 1em; }
+        .prose code { background-color: var(--bg-tertiary); padding: 0.2em 0.4em; border-radius: 4px; font-family: monospace; color: var(--text-primary); }
+        .prose pre { background-color: var(--bg-secondary); padding: 1em; border-radius: 8px; overflow-x: auto; margin-bottom: 1em; border: 1px solid var(--border-color); }
+        .prose h1, .prose h2, .prose h3 { margin-top: 1em; margin-bottom: 0.5em; font-weight: bold; color: var(--text-primary); }
+        .prose a { color: #8AB4F8; text-decoration: none; }
+        .prose a:hover { text-decoration: underline; }
+        .prose strong { color: var(--text-primary); font-weight: 700; }
+
+        /* Gemini Gradient Text */
+        .gemini-gradient {
+            background: linear-gradient(74deg, #4285F4 0%, #9B72CB 9%, #D96570 14%, #D96570 79%, #9B72CB 89%, #4285F4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 400% 400%;
+            animation: gradient 10s ease infinite;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .user-msg-bubble {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+        
+        .bot-msg {
+            background-color: transparent;
+        }
+
+        /* Pulse for recording */
+        .recording-pulse {
+            animation: pulse-red 1.5s infinite;
+        }
+        
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        /* Glassy Modal */
+        .glassy-modal {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        .light-mode .glassy-modal {
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        /* Utility classes replacement for colors */
+        .bg-custom-primary { background-color: var(--bg-primary); }
+        .bg-custom-secondary { background-color: var(--bg-secondary); }
+        .bg-custom-tertiary { background-color: var(--bg-tertiary); }
+        .text-custom-primary { color: var(--text-primary); }
+        .text-custom-secondary { color: var(--text-secondary); }
+        .border-custom { border-color: var(--border-color); }
+        .hover-bg-custom:hover { background-color: var(--hover-bg); }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <!-- Header -->
+    <header class="h-16 flex items-center justify-between px-4 lg:px-6 bg-custom-primary border-b border-custom shrink-0 z-20 transition-colors duration-300">
+        <div class="flex items-center gap-3">
+            <button id="menu-btn" class="p-2 rounded-full hover-bg-custom text-custom-primary md:hidden">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="text-xl font-medium gemini-gradient">Zaid Developers</span>
+            <span class="text-xs text-custom-secondary border border-custom px-2 py-0.5 rounded-full">DeepSeek-R1</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <button id="settings-btn" class="p-2 rounded-full hover-bg-custom text-custom-primary transition-colors" title="Settings">
+                <i class="fas fa-cog"></i>
+            </button>
+            <div class="w-8 h-8 rounded-full bg-custom-tertiary flex items-center justify-center text-custom-primary text-sm">
+                <i class="fas fa-user"></i>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden relative">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="absolute inset-y-0 left-0 w-64 bg-custom-secondary transform -translate-x-full md:translate-x-0 md:static transition-transform duration-300 z-10 flex flex-col border-r border-custom">
+            <div class="p-4">
+                <button id="new-chat-btn" class="w-full flex items-center gap-3 px-4 py-3 bg-custom-primary hover-bg-custom rounded-full transition-colors text-sm font-medium border border-custom text-custom-primary">
+                    <i class="fas fa-plus"></i>
+                    <span>New chat</span>
+                </button>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto px-2">
+                <div class="px-4 py-2 text-xs font-medium text-custom-secondary">Recent</div>
+                <div id="chat-history-list" class="space-y-1">
+                    <!-- History items will be added here -->
+                    <button class="w-full text-left px-4 py-2 rounded-full hover-bg-custom text-sm truncate text-custom-primary transition-colors">
+                        <i class="far fa-message mr-2 text-custom-secondary"></i> Welcome Chat
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-custom">
+                <div class="flex items-center gap-2 text-xs text-custom-secondary hover:text-custom-primary cursor-pointer">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Help</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Overlay for mobile sidebar -->
+        <div id="overlay" class="fixed inset-0 bg-black/50 z-0 hidden md:hidden"></div>
+
+        <!-- Main Chat Area -->
+        <main class="flex-1 flex flex-col relative w-full">
+            <!-- Messages Container -->
+            <div id="chat-container" class="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 pb-32 max-w-4xl mx-auto w-full">
+                
+                <!-- Welcome Message -->
+                <div class="flex flex-col items-center justify-center h-full space-y-8" id="welcome-screen">
+                    <div class="text-center space-y-2">
+                        <h1 class="text-4xl md:text-5xl font-medium gemini-gradient pb-2">Hello, User</h1>
+                        <p class="text-xl md:text-2xl text-custom-secondary">How can I help you today?</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl px-4">
+                        <button class="suggestion-btn p-4 rounded-xl bg-custom-secondary hover-bg-custom text-left transition-colors border border-transparent hover:border-custom">
+                            <p class="text-custom-primary text-sm">Explain quantum computing</p>
+                            <p class="text-custom-secondary text-xs mt-1">in simple terms</p>
+                        </button>
+                        <button class="suggestion-btn p-4 rounded-xl bg-custom-secondary hover-bg-custom text-left transition-colors border border-transparent hover:border-custom">
+                            <p class="text-custom-primary text-sm">Write a Python script</p>
+                            <p class="text-custom-secondary text-xs mt-1">to automate daily tasks</p>
+                        </button>
+                        <button class="suggestion-btn p-4 rounded-xl bg-custom-secondary hover-bg-custom text-left transition-colors border border-transparent hover:border-custom">
+                            <p class="text-custom-primary text-sm">Plan a trip</p>
+                            <p class="text-custom-secondary text-xs mt-1">to Japan for 2 weeks</p>
+                        </button>
+                        <button class="suggestion-btn p-4 rounded-xl bg-custom-secondary hover-bg-custom text-left transition-colors border border-transparent hover:border-custom">
+                            <p class="text-custom-primary text-sm">Draft an email</p>
+                            <p class="text-custom-secondary text-xs mt-1">requesting a deadline extension</p>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Messages will be injected here -->
+            </div>
+
+            <!-- Input Area -->
+            <div class="absolute bottom-0 left-0 right-0 bg-custom-primary pt-2 pb-6 px-4 transition-colors duration-300">
+                <div class="max-w-3xl mx-auto">
+                    <!-- Image Preview -->
+                    <div id="image-preview-container" class="hidden mb-2 px-4">
+                        <div class="relative inline-block">
+                            <img id="image-preview" src="" alt="Preview" class="h-20 w-auto rounded-lg border border-custom">
+                            <button id="remove-image-btn" class="absolute -top-2 -right-2 bg-gray-800 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-gray-600">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Input Bar -->
+                    <div class="bg-custom-secondary rounded-3xl p-2 flex items-end gap-2 border border-custom focus-within:border-gray-500 focus-within:bg-custom-tertiary transition-colors relative">
+                        
+                        <div class="flex items-center gap-1 mb-1.5 ml-1">
+                            <input type="file" id="image-upload" accept="image/*" class="hidden">
+                            <button id="upload-btn" class="p-2 rounded-full text-custom-primary hover-bg-custom transition-colors" title="Upload Image">
+                                <i class="fas fa-plus-circle text-lg"></i>
+                            </button>
+                        </div>
+
+                        <textarea id="user-input" rows="1" placeholder="Enter a prompt here" class="w-full bg-transparent text-custom-primary placeholder-gray-500 text-base p-3 focus:outline-none resize-none max-h-48 overflow-y-auto" style="min-height: 48px;"></textarea>
+
+                        <div class="flex items-center gap-1 mb-1.5 mr-1">
+                            <button id="mic-btn" class="p-2 rounded-full text-custom-primary hover-bg-custom transition-colors" title="Use Microphone">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                            <button id="send-btn" class="p-2 rounded-full text-custom-primary hover-bg-custom transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                <i class="fas fa-paper-plane text-[#8AB4F8]"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-2">
+                        <p class="text-[10px] text-custom-secondary">Gemini may display inaccurate info, including about people, so double-check its responses.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+        <div class="glassy-modal p-6 rounded-2xl w-80 shadow-xl text-center transform scale-95 transition-transform duration-300">
+            <h3 class="text-xl font-bold text-custom-primary mb-6">Settings</h3>
+            <div class="flex items-center justify-between text-custom-primary mb-6">
+                <span class="font-medium">Theme Mode</span>
+                <button id="theme-toggle" class="w-14 h-8 bg-custom-tertiary rounded-full relative transition-colors duration-300 border border-custom cursor-pointer">
+                    <div id="theme-indicator" class="w-6 h-6 bg-custom-primary rounded-full absolute left-1 top-1 transition-transform duration-300 shadow-sm flex items-center justify-center text-xs text-custom-secondary">
+                        <i class="fas fa-moon" id="theme-icon"></i>
+                    </div>
+                </button>
+            </div>
+            <button id="close-settings" class="mt-2 px-6 py-2 bg-custom-secondary hover-bg-custom rounded-full text-custom-primary transition-colors border border-custom font-medium">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_KEY = "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";
+        const API_URL = "https://openrouter.ai/api/v1/chat/completions";
+        const MODEL = "deepseek/deepseek-r1-0528:free";
+
+        // DOM Elements
+        const chatContainer = document.getElementById('chat-container');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const micBtn = document.getElementById('mic-btn');
+        const uploadBtn = document.getElementById('upload-btn');
+        const imageUpload = document.getElementById('image-upload');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+        const imagePreview = document.getElementById('image-preview');
+        const removeImageBtn = document.getElementById('remove-image-btn');
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const sidebar = document.getElementById('sidebar');
+        const menuBtn = document.getElementById('menu-btn');
+        const overlay = document.getElementById('overlay');
+        const newChatBtn = document.getElementById('new-chat-btn');
+        const suggestionBtns = document.querySelectorAll('.suggestion-btn');
+        const settingsBtn = document.getElementById('settings-btn');
+        const settingsModal = document.getElementById('settings-modal');
+        const closeSettings = document.getElementById('close-settings');
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIndicator = document.getElementById('theme-indicator');
+        const themeIcon = document.getElementById('theme-icon');
+
+        // State
+        let conversationHistory = [];
+        let isProcessing = false;
+        let selectedImage = null;
+        let isDarkMode = true;
+
+        // --- Theme Logic ---
+        themeToggle.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('light-mode', !isDarkMode);
+            
+            if (isDarkMode) {
+                themeIndicator.style.transform = 'translateX(0)';
+                themeIcon.className = 'fas fa-moon';
+            } else {
+                themeIndicator.style.transform = 'translateX(24px)';
+                themeIcon.className = 'fas fa-sun text-yellow-500';
+            }
+        });
+
+        settingsBtn.addEventListener('click', () => {
+            settingsModal.classList.remove('hidden');
+        });
+
+        closeSettings.addEventListener('click', () => {
+            settingsModal.classList.add('hidden');
+        });
+
+        settingsModal.addEventListener('click', (e) => {
+            if (e.target === settingsModal) settingsModal.classList.add('hidden');
+        });
+
+        // --- Sidebar Logic ---
+        menuBtn.addEventListener('click', () => {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+        });
+
+        overlay.addEventListener('click', () => {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        });
+
+        newChatBtn.addEventListener('click', () => {
+            conversationHistory = [];
+            chatContainer.innerHTML = '';
+            chatContainer.appendChild(welcomeScreen);
+            welcomeScreen.classList.remove('hidden');
+            userInput.value = '';
+            autoResizeTextarea();
+        });
+
+        // --- Input Logic ---
+        userInput.addEventListener('input', () => {
+            sendBtn.disabled = userInput.value.trim() === '' && !selectedImage;
+            autoResizeTextarea();
+        });
+
+        userInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+            }
+        });
+
+        function autoResizeTextarea() {
+            userInput.style.height = 'auto';
+            userInput.style.height = userInput.scrollHeight + 'px';
+        }
+
+        // --- Image Upload Logic ---
+        uploadBtn.addEventListener('click', () => {
+            imageUpload.click();
+        });
+
+        imageUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    selectedImage = e.target.result;
+                    imagePreview.src = selectedImage;
+                    imagePreviewContainer.classList.remove('hidden');
+                    sendBtn.disabled = false;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        removeImageBtn.addEventListener('click', () => {
+            selectedImage = null;
+            imageUpload.value = '';
+            imagePreviewContainer.classList.add('hidden');
+            sendBtn.disabled = userInput.value.trim() === '';
+        });
+
+        // --- Voice Assistant Logic ---
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'en-US';
+
+            micBtn.addEventListener('click', () => {
+                try {
+                    recognition.start();
+                    micBtn.classList.add('text-red-500', 'recording-pulse');
+                } catch (e) {
+                    console.error("Recognition already started");
+                }
+            });
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                userInput.value += (userInput.value ? ' ' : '') + transcript;
+                autoResizeTextarea();
+                sendBtn.disabled = false;
+                micBtn.classList.remove('text-red-500', 'recording-pulse');
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Speech recognition error", event.error);
+                micBtn.classList.remove('text-red-500', 'recording-pulse');
+            };
+            
+            recognition.onend = () => {
+                micBtn.classList.remove('text-red-500', 'recording-pulse');
+            };
+        } else {
+            micBtn.style.display = 'none';
+        }
+
+        // --- Suggestion Buttons ---
+        suggestionBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const text = btn.querySelector('p:first-child').innerText + ' ' + btn.querySelector('p:last-child').innerText;
+                userInput.value = text;
+                handleSend();
+            });
+        });
+
+        sendBtn.addEventListener('click', handleSend);
+
+        // --- Chat Functionality ---
+        async function handleSend() {
+            const text = userInput.value.trim();
+            if ((!text && !selectedImage) || isProcessing) return;
+
+            // Hide welcome screen
+            if (!welcomeScreen.classList.contains('hidden')) {
+                welcomeScreen.classList.add('hidden');
+            }
+
+            // Reset input
+            userInput.value = '';
+            userInput.style.height = 'auto';
+            const currentImage = selectedImage;
+            selectedImage = null;
+            imagePreviewContainer.classList.add('hidden');
+            sendBtn.disabled = true;
+
+            // Add User Message
+            const userMessage = { role: "user", content: text };
+            appendMessage("user", text, currentImage);
+            conversationHistory.push(userMessage);
+
+            // Add Assistant Placeholder
+            isProcessing = true;
+            const botMessageId = 'bot-' + Date.now();
+            // We append a placeholder message that we will stream into
+            const botMessageDiv = appendMessage("assistant", "", null, botMessageId, true); 
+            const contentDiv = botMessageDiv.querySelector('.prose');
+            
+            scrollToBottom();
+
+            try {
+                const recentHistory = conversationHistory.slice(-10);
+                const apiMessages = recentHistory.map(msg => ({
+                    role: msg.role,
+                    content: msg.content
+                }));
+
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${API_KEY}`,
+                        "HTTP-Referer": window.location.href,
+                        "X-Title": "Gemini Clone",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        "model": MODEL,
+                        "messages": apiMessages,
+                        "stream": true
+                    })
+                });
+
+                if (!response.ok) throw new Error(`API Error: ${response.status}`);
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder("utf-8");
+                let fullContent = "";
+                let isFirstChunk = true;
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.split('\n');
+                    
+                    for (const line of lines) {
+                        if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+                            try {
+                                const json = JSON.parse(line.substring(6));
+                                const content = json.choices[0].delta.content;
+                                if (content) {
+                                    if (isFirstChunk) {
+                                        contentDiv.innerHTML = ''; // Remove loading spinner
+                                        isFirstChunk = false;
+                                    }
+                                    fullContent += content;
+                                    contentDiv.innerHTML = marked.parse(fullContent);
+                                    scrollToBottom();
+                                }
+                            } catch (e) {
+                                console.error("Error parsing stream", e);
+                            }
+                        }
+                    }
+                }
+
+                // Final highlight
+                botMessageDiv.querySelectorAll('pre code').forEach((block) => {
+                    hljs.highlightElement(block);
+                });
+
+                conversationHistory.push({
+                    role: "assistant",
+                    content: fullContent
+                });
+
+            } catch (error) {
+                console.error(error);
+                contentDiv.innerHTML = "<span class='text-red-500'>Sorry, I encountered an error. Please try again.</span>";
+            } finally {
+                isProcessing = false;
+                scrollToBottom();
+            }
+        }
+
+        function appendMessage(role, text, imageSrc = null, id = null, isLoading = false) {
+            const div = document.createElement('div');
+            if (id) div.id = id;
+            div.className = `flex gap-4 w-full max-w-3xl mx-auto animate-fade-in`;
+            
+            let iconHtml = '';
+            if (role === 'user') {
+                div.classList.add('justify-end');
+                iconHtml = `
+                    <div class="w-8 h-8 rounded-full bg-white flex-shrink-0 flex items-center justify-center text-custom-tertiary text-xs font-bold order-2 border border-custom">
+                         <i class="fas fa-user"></i>
+                    </div>
+                `;
+            } else if (role === 'assistant') {
+                iconHtml = `
+                    <div class="w-8 h-8 rounded-full bg-custom-secondary border border-custom flex-shrink-0 flex items-center justify-center order-1 text-blue-400">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                `;
+            } else {
+                iconHtml = `<div class="w-8 h-8 rounded-full bg-red-500 flex-shrink-0 flex items-center justify-center text-white order-1">!</div>`;
+            }
+
+            let contentHtml = '';
+            if (role === 'user') {
+                contentHtml = `
+                    <div class="order-1 flex flex-col items-end max-w-[80%]">
+                        ${imageSrc ? `<img src="${imageSrc}" class="max-h-60 rounded-lg mb-2 border border-custom">` : ''}
+                        <div class="user-msg-bubble px-4 py-2.5 rounded-2xl rounded-tr-sm text-sm md:text-base leading-relaxed whitespace-pre-wrap">${escapeHtml(text)}</div>
+                    </div>
+                `;
+            } else {
+                // Initial content for bot (might be empty if streaming)
+                let initialContent = "";
+                if (isLoading) {
+                    initialContent = `
+                        <div class="flex items-center gap-1 h-6">
+                            <div class="w-2 h-2 bg-blue-400 rounded-full typing-dot"></div>
+                            <div class="w-2 h-2 bg-blue-400 rounded-full typing-dot"></div>
+                            <div class="w-2 h-2 bg-blue-400 rounded-full typing-dot"></div>
+                        </div>
+                    `;
+                } else {
+                    initialContent = marked.parse(text || "");
+                }
+
+                contentHtml = `
+                    <div class="order-2 flex-1 min-w-0">
+                         <div class="prose prose-invert max-w-none text-custom-primary text-sm md:text-base leading-relaxed">
+                            ${initialContent}
+                         </div>
+                         <div class="flex gap-2 mt-2">
+                             <button class="p-1 text-custom-secondary hover:text-custom-primary" onclick="copyToClipboard(this)" title="Copy">
+                                 <i class="far fa-copy"></i>
+                             </button>
+                             <button class="p-1 text-custom-secondary hover:text-custom-primary" title="Good response">
+                                 <i class="far fa-thumbs-up"></i>
+                             </button>
+                             <button class="p-1 text-custom-secondary hover:text-custom-primary" title="Bad response">
+                                 <i class="far fa-thumbs-down"></i>
+                             </button>
+                         </div>
+                    </div>
+                `;
+            }
+
+            div.innerHTML = role === 'user' ? contentHtml + iconHtml : iconHtml + contentHtml;
+            chatContainer.appendChild(div);
+            return div;
+        }
+
+        function scrollToBottom() {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        window.copyToClipboard = function(btn) {
+            const content = btn.parentElement.previousElementSibling.innerText;
+            navigator.clipboard.writeText(content).then(() => {
+                const icon = btn.querySelector('i');
+                icon.className = 'fas fa-check';
+                setTimeout(() => {
+                    icon.className = 'far fa-copy';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
